@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusConnect — Find Your People. Find Your Next Event.</title>
+  <meta name="description" content="Discover campus events, connect with student clubs, and register for workshops, hackathons, and cultural fests at your university.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="site-body">
+  <!-- Top Global Header -->
+  <header class="navbar" id="main-navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <a href="#home" class="nav-brand" id="brand-link" data-route="home">
+          <div class="brand-logo-mark">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              <line x1="12" y1="6" x2="16" y2="6"></line>
+              <line x1="12" y1="10" x2="16" y2="10"></line>
+            </svg>
+          </div>
+          <span class="brand-text">CampusConnect</span>
+        </a>
+
+        <!-- Main Navigation Links -->
+        <nav class="nav-links" id="nav-links" aria-label="Main Navigation">
+          <button class="nav-link active" data-route="home" id="nav-item-home">Home</button>
+          <button class="nav-link" data-route="explore" id="nav-item-explore">Explore events</button>
+          <button class="nav-link" data-route="registrations" id="nav-item-registrations">
+            My registrations
+            <span class="nav-badge" id="nav-reg-count">2</span>
+          </button>
+          <button class="nav-link" data-route="organizer" id="nav-item-organizer">Organizer Hub</button>
+        </nav>
+      </div>
+
+      <div class="nav-right">
+        <!-- Figma Reference Switcher Banner -->
+        <button class="figma-board-pill" id="btn-toggle-figma-modal" title="View Figma UI Reference Screens & Wireframe Flow">
+          <svg width="14" height="14" viewBox="0 0 38 57" fill="currentColor">
+            <path d="M19 28.5A9.5 9.5 0 1 1 28.5 19 9.5 9.5 0 0 1 19 28.5z" fill="#1ABCFE"/>
+            <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5A9.5 9.5 0 0 1 9.5 57 9.5 9.5 0 0 1 0 47.5z" fill="#0ACF83"/>
+            <path d="M19 0v19h9.5A9.5 9.5 0 1 0 28.5 0z" fill="#FF7262"/>
+            <path d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" fill="#F24E1E"/>
+            <path d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" fill="#A259FF"/>
+          </svg>
+          <span>Figma UI (13 Screens)</span>
+        </button>
+
+        <!-- Search shortcut -->
+        <button class="nav-icon-btn" id="btn-quick-search-trigger" title="Search events">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+
+        <!-- Logged Out State Buttons -->
+        <div class="auth-guest-group" id="auth-guest-group">
+          <button class="btn-text" id="btn-open-login">Log in</button>
+          <button class="btn-solid dark" id="btn-open-signup">Sign up</button>
+        </div>
+
+        <!-- Logged In State User Profile -->
+        <div class="auth-user-group" id="auth-user-group" style="display: none;">
+          <button class="user-profile-btn" id="btn-user-menu" data-route="profile" title="View your profile">
+            <div class="user-avatar-circle">U</div>
+            <span class="user-name-label">Account</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Toast Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- MAIN APPLICATION CONTENT AREA (Router Views) -->
+  <main class="main-content" id="main-content">
+
+    <!-- ===================================================================
+         VIEW 1: HOME PAGE (FIGMA SCREEN 1 & SCREEN 4)
+         =================================================================== -->
+    <section class="page-view active" id="view-home">
+      <div class="content-container">
+        <!-- Hero Banner (Pale Blue Card as in Figma) -->
+        <div class="figma-hero-card">
+          <div class="hero-left">
+            <div class="hero-pill-tag">WELCOME TO YOUR CAMPUS HUB</div>
+            <h1 class="hero-title">Find your people. Find your next event.</h1>
+            <p class="hero-subtitle">Discover campus events, connect with student clubs, and never miss what's happening around your university.</p>
+            <div class="hero-search-bar">
+              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="home-hero-search-input" placeholder="Find clubs, events, workshops, hackathons..." autocomplete="off">
+              <button class="btn-solid dark" id="btn-hero-search">Search</button>
+            </div>
+          </div>
+          <div class="hero-graphic">
+            <div class="graphic-chip chip-1">
+              <span class="chip-dot"></span> 24+ Events This Week
+            </div>
+            <div class="graphic-chip chip-2">
+              <span class="chip-icon">🎓</span> 120+ Active Clubs
+            </div>
+            <div class="graphic-circle">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                <path d="M2 12h20"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Upcoming events (Figma 3 Pastel Cards) -->
+        <div class="section-block">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Upcoming events</h2>
+              <p class="section-subtitle">Picked for your campus and popular among students</p>
+            </div>
+            <button class="btn-link" id="link-view-all-events" data-route="explore">View all events →</button>
+          </div>
+
+          <!-- 3 Featured Pastel Cards from Figma -->
+          <div class="figma-pastel-cards-grid">
+            <!-- Card 1: Pastel Blue -->
+            <div class="pastel-card blue" data-event-id="0">
+              <div class="pastel-thumb">
+                <div class="thumb-illustration tech-illo">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                  </svg>
+                </div>
+                <span class="category-tag">Tech & AI</span>
+              </div>
+              <div class="pastel-info">
+                <h3 class="pastel-title">Tech Talk: AI Basics</h3>
+                <p class="pastel-meta">Thursday, Oct 24 • 4:00 PM • Science Hall 101</p>
+                <div class="pastel-footer">
+                  <span class="attendees-count">👥 120 / 150 attending</span>
+                  <button class="btn-sm dark" data-action="rsvp" data-event-id="0">Register</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Pastel Purple -->
+            <div class="pastel-card purple" data-event-id="1">
+              <div class="pastel-thumb">
+                <div class="thumb-illustration arts-illo">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path>
+                  </svg>
+                </div>
+                <span class="category-tag">Exhibition</span>
+              </div>
+              <div class="pastel-info">
+                <h3 class="pastel-title">Photography Exhibition</h3>
+                <p class="pastel-meta">Friday, Oct 25 • 2:00 PM • Arts Gallery</p>
+                <div class="pastel-footer">
+                  <span class="attendees-count">👥 84 attending</span>
+                  <button class="btn-sm dark" data-action="rsvp" data-event-id="1">Register</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Pastel Green -->
+            <div class="pastel-card green" data-event-id="2">
+              <div class="pastel-thumb">
+                <div class="thumb-illustration comedy-illo">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                  </svg>
+                </div>
+                <span class="category-tag">Comedy & Social</span>
+              </div>
+              <div class="pastel-info">
+                <h3 class="pastel-title">Open Mic Stand Up</h3>
+                <p class="pastel-meta">Saturday, Oct 26 • 7:00 PM • Campus Student Union</p>
+                <div class="pastel-footer">
+                  <span class="attendees-count">👥 195 attending</span>
+                  <button class="btn-sm dark" data-action="rsvp" data-event-id="2">Register</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Quick Category Explorer -->
+        <div class="section-block">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Browse by interest</h2>
+              <p class="section-subtitle">Find activities matching your passion and schedule</p>
+            </div>
+          </div>
+
+          <div class="categories-row">
+            <button class="category-capsule active" data-category="all">
+              <span>🌟</span> All Categories
+            </button>
+            <button class="category-capsule" data-category="tech">
+              <span>💻</span> Tech & Coding
+            </button>
+            <button class="category-capsule" data-category="arts">
+              <span>🎨</span> Arts & Media
+            </button>
+            <button class="category-capsule" data-category="sports">
+              <span>🏀</span> Athletics & Sports
+            </button>
+            <button class="category-capsule" data-category="workshops">
+              <span>📚</span> Career & Workshops
+            </button>
+            <button class="category-capsule" data-category="social">
+              <span>🎉</span> Social & Fests
+            </button>
+          </div>
+
+          <!-- Dynamic Filtered Event Grid -->
+          <div class="events-listing-grid" id="home-events-grid">
+            <!-- Dynamically populated from app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 2: EXPLORE EVENTS (FIGMA SCREEN 5)
+         =================================================================== -->
+    <section class="page-view" id="view-explore">
+      <div class="content-container">
+        <!-- Page Title & Filter Bar -->
+        <div class="explore-header-row">
+          <div>
+            <h1 class="page-title">Explore events</h1>
+            <p class="page-subtitle">Find and RSVP for all public campus gatherings, competitions, and meetups</p>
+          </div>
+          <div class="explore-actions">
+            <button class="btn-outline" id="btn-export-calendar">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              Sync to Calendar
+            </button>
+            <button class="btn-solid dark" data-route="create-event">+ Host an event</button>
+          </div>
+        </div>
+
+        <!-- Filter Controls Bar -->
+        <div class="filters-card">
+          <div class="filter-search-wrap">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="explore-search-input" placeholder="Search by event title, organizer, or venue...">
+          </div>
+
+          <div class="filter-dropdowns">
+            <select id="filter-category-select" class="filter-select">
+              <option value="all">All Categories</option>
+              <option value="tech">Tech & AI</option>
+              <option value="arts">Arts & Photography</option>
+              <option value="social">Comedy & Social</option>
+              <option value="sports">Athletics & Sports</option>
+              <option value="workshops">Workshops & Career</option>
+            </select>
+
+            <select id="filter-timing-select" class="filter-select">
+              <option value="all">Any Date</option>
+              <option value="today">Today</option>
+              <option value="this-week">This Week</option>
+              <option value="weekend">This Weekend</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Events List Container -->
+        <div class="explore-results-summary">
+          <span id="explore-results-count">Showing 6 campus events</span>
+        </div>
+
+        <div class="events-list-vertical" id="explore-events-container">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 3: EVENT DETAIL PAGE (FIGMA SCREEN 6: "Tech Talk: AI Basics")
+         =================================================================== -->
+    <section class="page-view" id="view-event-detail">
+      <div class="content-container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-bar">
+          <button class="breadcrumb-back-btn" id="btn-back-to-events">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Back to events</span>
+          </button>
+        </div>
+
+        <!-- Main Detail Grid -->
+        <div class="event-detail-grid">
+          <!-- Left Column: Large Visual Banner & About -->
+          <div class="detail-main-col">
+            <div class="detail-banner-card" id="detail-banner">
+              <div class="banner-illustration-large" id="detail-banner-illo">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+              </div>
+              <div class="banner-badge-tag" id="detail-category-badge">Tech Talk</div>
+            </div>
+
+            <div class="detail-body-card">
+              <h2 class="detail-sec-title">About this event</h2>
+              <div class="detail-description-text" id="detail-desc-text">
+                Join us for an exciting deep-dive into modern artificial intelligence, neural networks, and prompt engineering. This hands-on session is curated by student researchers and industry mentors to help you build your first intelligent campus assistant. No prior machine learning experience required!
+              </div>
+
+              <h3 class="detail-sec-subtitle">What you will learn</h3>
+              <ul class="detail-bullets-list">
+                <li>Core fundamentals of Generative AI and LLM APIs</li>
+                <li>How to build interactive web agents and automated workflows</li>
+                <li>University computing lab access & mentorship opportunities</li>
+                <li>Complimentary coffee, pizza, and official event participation certificate</li>
+              </ul>
+
+              <h3 class="detail-sec-subtitle">Location & Directions</h3>
+              <div class="location-box">
+                <div class="location-icon">📍</div>
+                <div class="location-info">
+                  <strong id="detail-venue-name">Science & Tech Hall 101</strong>
+                  <span>Main Quadrangle, East Campus Gate 3 • Accessible entrance via North Ramp</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Registration Card & Metadata -->
+          <div class="detail-side-col">
+            <div class="event-action-card">
+              <div class="action-card-header">
+                <span class="event-status-pill open" id="detail-status-pill">● Registration Open</span>
+                <span class="event-fee-tag" id="detail-fee-tag">Free for Students</span>
+              </div>
+
+              <h1 class="detail-event-title" id="detail-title">Tech Talk: AI Basics</h1>
+
+              <div class="detail-meta-list">
+                <div class="meta-item">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <div>
+                    <strong id="detail-date-display">Thursday, Oct 24, 2024</strong>
+                    <span id="detail-time-display">4:00 PM – 5:30 PM EDT</span>
+                  </div>
+                </div>
+
+                <div class="meta-item">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <div>
+                    <strong id="detail-venue-short">Science & Tech Hall 101</strong>
+                    <span>Capacity: 150 seats</span>
+                  </div>
+                </div>
+
+                <div class="meta-item">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <div>
+                    <strong id="detail-organizer-name">ACM Student Chapter</strong>
+                    <span>Verified Campus Club</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Capacity Progress Bar -->
+              <div class="capacity-meter-wrap">
+                <div class="meter-labels">
+                  <span class="meter-text">Attendees Registered</span>
+                  <strong class="meter-count" id="detail-capacity-count">120 / 150 (80%)</strong>
+                </div>
+                <div class="meter-bar">
+                  <div class="meter-fill" id="detail-capacity-fill" style="width: 80%;"></div>
+                </div>
+                <span class="meter-sub">⚡ 30 spots remaining. Registration closes in 48 hours.</span>
+              </div>
+
+              <!-- Primary CTA: Register for Event -->
+              <button class="btn-solid dark full-width" id="btn-open-confirm-reg">
+                Register for event
+              </button>
+
+              <button class="btn-outline full-width" id="btn-share-event">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="18" cy="5" r="3"></circle>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="19" r="3"></circle>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                Share event
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 4: YOU'RE REGISTERED! SUCCESS PAGE (FIGMA SCREEN 8)
+         =================================================================== -->
+    <section class="page-view" id="view-success">
+      <div class="content-container narrow">
+        <div class="figma-success-card">
+          <!-- Green checkmark circle icon -->
+          <div class="success-check-circle">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+
+          <h1 class="success-heading">You're registered!</h1>
+          <p class="success-sub">We've saved your spot and sent a digital entry pass to <strong id="success-user-email"></strong>.</p>
+
+          <!-- Digital Pass Ticket Preview -->
+          <div class="digital-ticket-pass" id="digital-ticket-pass">
+            <div class="ticket-top">
+              <span class="ticket-badge">OFFICIAL CAMPUS PASS</span>
+              <span class="ticket-id" id="success-pass-id">#CC-8941-AI</span>
+            </div>
+            <div class="ticket-content">
+              <h3 class="ticket-event-name" id="success-event-title">Tech Talk: AI Basics</h3>
+              <p class="ticket-meta" id="success-event-meta">Thursday, Oct 24 • 4:00 PM • Science Hall 101</p>
+              <div class="ticket-qr-wrap">
+                <!-- SVG QR Code -->
+                <svg width="110" height="110" viewBox="0 0 100 100" class="qr-code-graphic">
+                  <rect width="100" height="100" fill="#ffffff" rx="6"></rect>
+                  <rect x="8" y="8" width="28" height="28" fill="#0f172a" rx="3"></rect>
+                  <rect x="14" y="14" width="16" height="16" fill="#ffffff"></rect>
+                  <rect x="18" y="18" width="8" height="8" fill="#0f172a"></rect>
+
+                  <rect x="64" y="8" width="28" height="28" fill="#0f172a" rx="3"></rect>
+                  <rect x="70" y="14" width="16" height="16" fill="#ffffff"></rect>
+                  <rect x="74" y="18" width="8" height="8" fill="#0f172a"></rect>
+
+                  <rect x="8" y="64" width="28" height="28" fill="#0f172a" rx="3"></rect>
+                  <rect x="14" y="70" width="16" height="16" fill="#ffffff"></rect>
+                  <rect x="18" y="74" width="8" height="8" fill="#0f172a"></rect>
+
+                  <rect x="42" y="10" width="10" height="10" fill="#0f172a"></rect>
+                  <rect x="46" y="24" width="10" height="12" fill="#0f172a"></rect>
+                  <rect x="12" y="44" width="14" height="8" fill="#0f172a"></rect>
+                  <rect x="32" y="42" width="18" height="18" fill="#0f172a"></rect>
+                  <rect x="56" y="42" width="8" height="18" fill="#0f172a"></rect>
+                  <rect x="70" y="44" width="20" height="8" fill="#0f172a"></rect>
+                  <rect x="42" y="68" width="14" height="12" fill="#0f172a"></rect>
+                  <rect x="62" y="68" width="12" height="22" fill="#0f172a"></rect>
+                  <rect x="80" y="76" width="10" height="14" fill="#0f172a"></rect>
+                </svg>
+                <div class="ticket-attendee-info">
+                  <span class="info-label">ATTENDEE</span>
+                  <strong class="info-val" id="success-attendee-name"></strong>
+                  <span class="info-label" style="margin-top: 6px;">STUDENT ID</span>
+                  <strong class="info-val" id="success-student-id">STU-2026-9042</strong>
+                  <span class="verified-tag">✓ Verified Student</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Buttons matching Figma -->
+          <div class="success-buttons-group">
+            <button class="btn-solid dark" data-route="registrations">
+              View my registrations
+            </button>
+            <button class="btn-link" data-route="home">
+              Back to home
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 5: MY REGISTRATIONS (FIGMA SCREEN 9)
+         =================================================================== -->
+    <section class="page-view" id="view-registrations">
+      <div class="content-container">
+        <div class="page-header-row">
+          <div>
+            <h1 class="page-title">My registrations</h1>
+            <p class="page-subtitle">View and manage the events you have RSVP'd for</p>
+          </div>
+          <button class="btn-outline" data-route="explore">
+            + Discover more events
+          </button>
+        </div>
+
+        <!-- Tabs: Upcoming vs Past -->
+        <div class="tab-pill-bar">
+          <button class="tab-pill active" id="tab-reg-upcoming">Upcoming (2)</button>
+          <button class="tab-pill" id="tab-reg-past">Past (1)</button>
+        </div>
+
+        <div class="my-registrations-list" id="my-registrations-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 6: ORGANIZER HUB / MY EVENTS (FIGMA SCREEN 10)
+         =================================================================== -->
+    <section class="page-view" id="view-organizer">
+      <div class="content-container">
+        <div class="page-header-row">
+          <div>
+            <h1 class="page-title">My events</h1>
+            <p class="page-subtitle">Manage campus events, monitor registration metrics, and review attendee rosters</p>
+          </div>
+          <button class="btn-solid dark" data-route="create-event" id="btn-organizer-create">
+            + Create a new event
+          </button>
+        </div>
+
+        <!-- Metric Stat Cards from Figma -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Active events</span>
+            <span class="metric-number" id="metric-active-events">3</span>
+            <span class="metric-trend">Published on campus</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Total RSVPs</span>
+            <span class="metric-number" id="metric-total-rsvps">128</span>
+            <span class="metric-trend positive">↑ 18 this week</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Upcoming</span>
+            <span class="metric-number" id="metric-upcoming-count">2</span>
+            <span class="metric-trend">Scheduled soon</span>
+          </div>
+        </div>
+
+        <!-- Recently updated events section -->
+        <div class="section-block">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Recently updated</h2>
+              <p class="section-subtitle">Events you are currently managing</p>
+            </div>
+          </div>
+
+          <div class="organizer-events-table-wrap">
+            <table class="figma-table" id="organizer-table">
+              <thead>
+                <tr>
+                  <th>Event Name</th>
+                  <th>Category</th>
+                  <th>Date & Venue</th>
+                  <th>RSVPs</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="organizer-events-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 7: CREATE A NEW EVENT (FIGMA SCREEN 11)
+         =================================================================== -->
+    <section class="page-view" id="view-create-event">
+      <div class="content-container narrow">
+        <div class="breadcrumb-bar">
+          <button class="breadcrumb-back-btn" data-route="organizer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Back to my events</span>
+          </button>
+        </div>
+
+        <div class="form-page-card">
+          <h1 class="page-title">Create a new event</h1>
+          <p class="page-subtitle">Fill in the details below to publish your event to the campus discovery feed</p>
+
+          <form id="create-event-form" class="figma-form" onsubmit="event.preventDefault();">
+            <div class="form-field">
+              <label for="new-event-title">Event title</label>
+              <input type="text" id="new-event-title" placeholder="e.g. Annual Campus Hackathon 2026" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="new-event-category">Category</label>
+                <select id="new-event-category" required>
+                  <option value="tech">Tech & AI</option>
+                  <option value="arts">Arts & Photography</option>
+                  <option value="social">Comedy & Social</option>
+                  <option value="sports">Athletics & Sports</option>
+                  <option value="workshops">Workshops & Career</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="new-event-capacity">Capacity / Max attendees</label>
+                <input type="number" id="new-event-capacity" placeholder="e.g. 150" value="100" min="10" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="new-event-date">Date & Time</label>
+                <input type="text" id="new-event-date" placeholder="e.g. Saturday, Nov 02 • 5:00 PM" required>
+              </div>
+
+              <div class="form-field">
+                <label for="new-event-venue">Location / Venue</label>
+                <input type="text" id="new-event-venue" placeholder="e.g. Science & Tech Hall 204" required>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="new-event-desc">Event description</label>
+              <textarea id="new-event-desc" rows="4" placeholder="Provide details about the event schedule, guest speakers, refreshments, or prerequisites..." required></textarea>
+            </div>
+
+            <div class="form-actions-bar">
+              <button type="button" class="btn-outline" data-route="organizer">Cancel</button>
+              <button type="submit" class="btn-solid dark" id="btn-submit-publish-event">Publish event</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 8: EVENT ATTENDEES ROSTER (FIGMA SCREEN 12)
+         =================================================================== -->
+    <section class="page-view" id="view-attendees">
+      <div class="content-container">
+        <div class="breadcrumb-bar">
+          <button class="breadcrumb-back-btn" data-route="organizer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Back to event</span>
+          </button>
+        </div>
+
+        <div class="page-header-row">
+          <div>
+            <h1 class="page-title" id="attendees-page-title">Event attendees — Tech Talk: AI Basics</h1>
+            <p class="page-subtitle">Track check-ins and verified attendees for this event</p>
+          </div>
+          <div class="explore-actions">
+            <button class="btn-outline" id="btn-export-attendees-csv">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Search attendees bar -->
+        <div class="filters-card">
+          <div class="filter-search-wrap">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="attendee-search-input" placeholder="Search attendee by name, student email, or ID...">
+          </div>
+          <div class="attendee-stats-badge">
+            <strong id="attendees-checked-in-count">2</strong> of 4 checked in
+          </div>
+        </div>
+
+        <!-- Table of attendees from Figma -->
+        <div class="organizer-events-table-wrap">
+          <table class="figma-table" id="attendees-table">
+            <thead>
+              <tr>
+                <th>Attendee Name</th>
+                <th>Student Email</th>
+                <th>Student ID</th>
+                <th>Registered At</th>
+                <th>Check-in Status</th>
+              </tr>
+            </thead>
+            <tbody id="attendees-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 9: MY PROFILE (FIGMA SCREEN 13)
+         =================================================================== -->
+    <section class="page-view" id="view-profile">
+      <div class="content-container narrow">
+        <div class="profile-hero-card">
+          <div class="profile-avatar-large">U</div>
+          <div class="profile-summary">
+            <div class="profile-name-row">
+            <h1 class="profile-user-name">Your profile</h1>
+              <span class="user-role-pill">Verified Student</span>
+            </div>
+            <p class="profile-email"></p>
+            <p class="profile-meta"></p>
+          </div>
+          <button class="btn-outline btn-sm" id="btn-edit-profile">Edit profile</button>
+        </div>
+
+        <!-- Profile Settings Block -->
+        <div class="settings-card">
+          <h2 class="settings-sec-title">Account details</h2>
+          <div class="settings-row">
+            <span class="setting-key">Full Name</span>
+            <span class="setting-val profile-setting-name"></span>
+          </div>
+          <div class="settings-row">
+            <span class="setting-key">Campus Email</span>
+            <span class="setting-val profile-setting-email"></span>
+          </div>
+          <div class="settings-row">
+            <span class="setting-key">Student ID</span>
+            <span class="setting-val profile-setting-student-id"></span>
+          </div>
+          <div class="settings-row">
+            <span class="setting-key">Department / Major</span>
+            <span class="setting-val profile-setting-department"></span>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h2 class="settings-sec-title">Preferences & Notifications</h2>
+          <div class="toggle-setting-row">
+            <div>
+              <strong>Event Reminders</strong>
+              <p>Receive notifications 2 hours prior to registered events</p>
+            </div>
+            <input type="checkbox" checked class="checkbox-toggle">
+          </div>
+          <div class="toggle-setting-row">
+            <div>
+              <strong>New Events in Tech & AI</strong>
+              <p>Get email digest when new workshops or hackathons are posted</p>
+            </div>
+            <input type="checkbox" checked class="checkbox-toggle">
+          </div>
+        </div>
+
+        <div class="profile-logout-wrap">
+          <button class="btn-outline danger" id="btn-account-logout">Log out of CampusConnect</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================
+       MODAL 1: CONFIRM YOUR REGISTRATION (FIGMA SCREEN 7)
+       =================================================================== -->
+  <div class="modal-backdrop" id="modal-confirm-reg">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-title">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-confirm-title">Confirm your registration</h2>
+        <button class="modal-close-btn" id="btn-close-confirm-modal" aria-label="Close modal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Event summary snippet -->
+        <div class="confirm-event-snippet">
+          <div class="snippet-thumb" id="confirm-snippet-thumb">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
+          <div class="snippet-details">
+            <h3 class="snippet-title" id="confirm-event-title">Tech Talk: AI Basics</h3>
+            <p class="snippet-meta" id="confirm-event-meta">Thursday, Oct 24 • 4:00 PM • Science Hall 101</p>
+          </div>
+        </div>
+
+        <form id="form-confirm-rsvp" onsubmit="event.preventDefault();">
+          <div class="form-field">
+            <label for="confirm-attendee-name">Attendee name</label>
+            <input type="text" id="confirm-attendee-name" required>
+          </div>
+
+          <div class="form-field">
+            <label for="confirm-attendee-email">University email</label>
+            <input type="email" id="confirm-attendee-email" required>
+          </div>
+
+          <div class="form-field">
+            <label for="confirm-attendee-id">Student ID / Roll No</label>
+            <input type="text" id="confirm-attendee-id" value="STU-2026-9042" required>
+          </div>
+
+          <div class="confirm-policy-note">
+            By confirming, you agree to follow the Campus Code of Conduct and check in upon arrival at the venue.
+          </div>
+
+          <div class="modal-actions-row">
+            <button type="button" class="btn-text" id="btn-cancel-confirm">Cancel</button>
+            <button type="submit" class="btn-solid dark" id="btn-submit-registration">Confirm registration</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       MODAL 2: WELCOME BACK / LOGIN (FIGMA SCREEN 2)
+       =================================================================== -->
+  <div class="modal-backdrop" id="modal-login">
+    <div class="modal-box narrow" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 class="modal-title">Welcome back</h2>
+        <button class="modal-close-btn" id="btn-close-login-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-subtitle">Login to access your registered events and campus tickets</p>
+
+        <form id="form-login" onsubmit="event.preventDefault();">
+          <div class="form-field">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="student@university.edu" autocomplete="username" required>
+          </div>
+
+          <div class="form-field">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password" required>
+          </div>
+
+          <button type="submit" class="btn-solid dark full-width" id="btn-do-login">
+            Log in
+          </button>
+
+          <div class="modal-bottom-link">
+            <span>Don't have an account?</span>
+            <button type="button" class="btn-link" id="link-switch-to-signup">Create an account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       MODAL 3: CREATE YOUR ACCOUNT / SIGNUP (FIGMA SCREEN 3)
+       =================================================================== -->
+  <div class="modal-backdrop" id="modal-signup">
+    <div class="modal-box narrow" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 class="modal-title">Create your account</h2>
+        <button class="modal-close-btn" id="btn-close-signup-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-subtitle">Join CampusConnect with your university email</p>
+
+        <form id="form-signup" onsubmit="event.preventDefault();">
+          <div class="form-field">
+            <label for="signup-name">Full name</label>
+            <input type="text" id="signup-name" placeholder="e.g. Alex Tan" required>
+          </div>
+
+          <div class="form-field">
+            <label for="signup-email">Campus email</label>
+            <input type="email" id="signup-email" placeholder="student@university.edu" required>
+          </div>
+
+          <div class="form-field">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" placeholder="At least 6 characters" minlength="6" autocomplete="new-password" required>
+          </div>
+
+          <button type="submit" class="btn-solid dark full-width" id="btn-do-signup">
+            Create account
+          </button>
+
+          <div class="modal-bottom-link">
+            <span>Already have an account?</span>
+            <button type="button" class="btn-link" id="link-switch-to-login">Log in</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       MODAL 4: FIGMA UI REFERENCE & WIREFRAME FLOW VIEWER
+       =================================================================== -->
+  <div class="modal-backdrop" id="modal-figma-viewer">
+    <div class="modal-box extra-wide">
+      <div class="modal-header">
+        <div class="figma-modal-title-wrap">
+          <svg width="18" height="18" viewBox="0 0 38 57" fill="currentColor">
+            <path d="M19 28.5A9.5 9.5 0 1 1 28.5 19 9.5 9.5 0 0 1 19 28.5z" fill="#1ABCFE"/>
+            <path d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5A9.5 9.5 0 0 1 9.5 57 9.5 9.5 0 0 1 0 47.5z" fill="#0ACF83"/>
+            <path d="M19 0v19h9.5A9.5 9.5 0 1 0 28.5 0z" fill="#FF7262"/>
+            <path d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" fill="#F24E1E"/>
+            <path d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" fill="#A259FF"/>
+          </svg>
+          <div>
+            <h2 class="modal-title">CampusConnect — Figma Design Architecture (13 Screens)</h2>
+            <p class="modal-subtitle">Extracted from Figma node-id=7-18 • Recreated as a fully interactive responsive web application</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-figma-modal">✕</button>
+      </div>
+
+      <div class="modal-body figma-body">
+        <div class="figma-screens-sitemap">
+          <div class="sitemap-column">
+            <h4>1. Public / Auth Flow</h4>
+            <div class="sitemap-item" data-route="home">
+              <span class="sitemap-idx">01</span>
+              <span>Landing Page ("Find your people")</span>
+            </div>
+            <div class="sitemap-item" id="sitemap-open-login">
+              <span class="sitemap-idx">02</span>
+              <span>Welcome Back (Login Modal)</span>
+            </div>
+            <div class="sitemap-item" id="sitemap-open-signup">
+              <span class="sitemap-idx">03</span>
+              <span>Create Account (Signup Modal)</span>
+            </div>
+            <div class="sitemap-item" data-route="home">
+              <span class="sitemap-idx">04</span>
+              <span>Authenticated Home ("Welcome back, Alex")</span>
+            </div>
+          </div>
+
+          <div class="sitemap-column">
+            <h4>2. Discovery & Registration Flow</h4>
+            <div class="sitemap-item" data-route="explore">
+              <span class="sitemap-idx">05</span>
+              <span>Explore Events Directory</span>
+            </div>
+            <div class="sitemap-item" data-route="event-detail" data-event-id="0">
+              <span class="sitemap-idx">06</span>
+              <span>Event Details ("Tech Talk: AI Basics")</span>
+            </div>
+            <div class="sitemap-item" id="sitemap-open-confirm">
+              <span class="sitemap-idx">07</span>
+              <span>Confirm Registration Modal</span>
+            </div>
+            <div class="sitemap-item" data-route="success">
+              <span class="sitemap-idx">08</span>
+              <span>You're Registered! (Pass Screen)</span>
+            </div>
+          </div>
+
+          <div class="sitemap-column">
+            <h4>3. Management & Profile</h4>
+            <div class="sitemap-item" data-route="registrations">
+              <span class="sitemap-idx">09</span>
+              <span>My Registrations (Upcoming/Past)</span>
+            </div>
+            <div class="sitemap-item" data-route="organizer">
+              <span class="sitemap-idx">10</span>
+              <span>Organizer Hub ("My events")</span>
+            </div>
+            <div class="sitemap-item" data-route="create-event">
+              <span class="sitemap-idx">11</span>
+              <span>Create New Event Form</span>
+            </div>
+            <div class="sitemap-item" data-route="attendees">
+              <span class="sitemap-idx">12</span>
+              <span>Event Attendees Roster</span>
+            </div>
+            <div class="sitemap-item" data-route="profile">
+              <span class="sitemap-idx">13</span>
+              <span>My Profile & Settings</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="figma-assets-footer">
+          <a href="campusconnect_wireframe.svg" download="campusconnect_wireframe.svg" class="btn-outline">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download Standalone Wireframe SVG
+          </a>
+          <a href="https://www.figma.com/design/3aVDODbq9TsuAgikkUdWle/CampusConnect-UI?node-id=7-18" target="_blank" rel="noopener" class="btn-solid dark">
+            Open in Figma ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <strong>CampusConnect</strong>
+        <span>The University Event Discovery Platform</span>
+      </div>
+      <div class="footer-meta">
+        <span>Designed from Figma node-id=7-18</span>
+        <span>•</span>
+        <span>Interactive Single Page Web Application</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
