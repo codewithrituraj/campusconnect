@@ -35,6 +35,18 @@ There is no built-in or demo account. Create accounts from the **Create an accou
 
 Supabase Email Auth is used for signup, login, logout, and protected API requests. A signup immediately saves the new profile to the existing `users` table, including when email confirmation is enabled; the backend verifies the account against Supabase Auth before saving. If confirmation is required, the app asks the user to confirm their email and then log in. If Supabase returns an active session, signup opens the app directly. Successful logins also upsert the authenticated user ID, email, and display name. This keeps credentials and sessions in Supabase Auth while keeping the CampusConnect profile in your database. Enable the Email provider in Supabase Authentication settings. The `users` table must include `id`, `email`, `name`, and `role` columns.
 
+## Deploy to Vercel
+
+Import this GitHub repository into Vercel using the Python framework preset. Before deploying, add these environment variables to the Vercel project for Production (and Preview if needed):
+
+```env
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+Use the values from Supabase **Project Settings → API**. Keep the service-role key only in Vercel's server-side environment variables; never add it to frontend code or Git. The Vercel configuration bundles the HTML, JavaScript, CSS, and SVG files with the Flask function. After deployment, add the Vercel production URL to Supabase **Authentication → URL Configuration** so email confirmation and redirects work for the deployed app.
+
 ## API
 
 | Method | Path | Purpose |
