@@ -37,7 +37,7 @@ Supabase Email Auth is used for signup, login, logout, and protected API request
 
 ## Deploy to Vercel
 
-Import this GitHub repository into Vercel using the Python framework preset. Before deploying, add these environment variables to the Vercel project for Production (and Preview if needed):
+Import this GitHub repository into Vercel using the Python framework preset. Before deploying, add these environment variables to the Vercel project for Production (and Preview if needed). Redeploy after changing environment variables; pushes to the connected `main` branch trigger a production deployment:
 
 ```env
 SUPABASE_URL
