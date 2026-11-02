@@ -606,6 +606,8 @@ def index():
 def frontend_file(filename):
     if filename.startswith("api/"):
         return fail(404, "NOT_FOUND", "Route not found")
+    if (ROOT / "public" / filename).is_file():
+        return send_from_directory(ROOT / "public", filename)
     if (ROOT / filename).is_file():
         return send_from_directory(ROOT, filename)
     return send_from_directory(ROOT, "index.html")

@@ -45,7 +45,7 @@ SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 ```
 
-Use the values from Supabase **Project Settings → API**. Keep the service-role key only in Vercel's server-side environment variables; never add it to frontend code or Git. The Vercel configuration bundles the HTML, JavaScript, CSS, and SVG files with the Flask function. After deployment, add the Vercel production URL to Supabase **Authentication → URL Configuration** so email confirmation and redirects work for the deployed app.
+Use the values from Supabase **Project Settings → API**. Keep the service-role key only in Vercel's server-side environment variables; never add it to frontend code or Git. Vercel serves the frontend assets from `public/` and runs the Flask API as a Python Function. After deployment, add the Vercel production URL to Supabase **Authentication → URL Configuration** so email confirmation and redirects work for the deployed app.
 
 ## API
 
