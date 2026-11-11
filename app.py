@@ -24,7 +24,13 @@ if not SUPABASE_URL or not SUPABASE_ANON_KEY or not SUPABASE_SERVICE_ROLE_KEY:
 admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 app = Flask(__name__)
 # Existing database table name; the extra "r" is part of the real schema.
-REGISTRATION_TABLE = "regristration"
+# Physical schema used by the connected Supabase project.  The API continues
+# exposing the original CampusConnect field names for frontend compatibility.
+REGISTRATION_TABLE = "registrations"
+USER_ID_COLUMN = "uuid"
+EVENT_ID_COLUMN = "event_id"
+USER_FK_COLUMN = "student_id"
+CREATED_AT_COLUMN = "created_at"
 
 
 def ok(data, status=200, meta=None):
@@ -69,18 +75,23 @@ def user_shape(row):
     if not row:
         return None
     name = row.get("name") or row.get("email", "").split("@", 1)[0].replace(".", " ").title()
-    return {**row, "name": name, "student_id": row.get("student_id", ""), "department": row.get("department", ""), "class_year": row.get("class_year", ""), "campus": row.get("campus", "")}
+    shaped = {**row, "id": row.get(USER_ID_COLUMN) or row.get("id"), "name": name,
+              "student_id": row.get("student_id", ""), "department": row.get("department", ""),
+              "class_year": row.get("class_year", ""), "campus": row.get("campus", "")}
+    if shaped.get("role") == "organiser":
+        shaped["role"] = "organizer"
+    return shaped
 
 
 def upsert_user_profile(user_id, email, name, role="student"):
-    """Persist Auth identity in either the full or legacy users schema."""
-    try:
-        admin.table("users").upsert({"id": user_id, "email": email, "name": name, "role": role}).execute()
-    except Exception:
-        # Older CampusConnect databases may not have the optional name column.
-        # Auth remains authoritative; id/email/role are enough to authorize the user.
-        admin.table("users").upsert({"id": user_id, "email": email, "role": role}).execute()
-    row, _ = run(admin.table("users").select("*").eq("id", user_id).maybe_single())
+    """Persist Auth identity in the connected users(uuid,email,role) schema."""
+    existing, _ = run(admin.table("users").select(USER_ID_COLUMN).eq(USER_ID_COLUMN, user_id).maybe_single())
+    payload = {USER_ID_COLUMN: user_id, "email": email, "role": "organiser" if role == "organizer" else role}
+    if existing:
+        admin.table("users").update({"email": email}).eq(USER_ID_COLUMN, user_id).execute()
+    else:
+        admin.table("users").insert(payload).execute()
+    row, _ = run(admin.table("users").select("*").eq(USER_ID_COLUMN, user_id).maybe_single())
     return row
 
 
@@ -97,12 +108,12 @@ def authenticate(required=True):
         user_id = getattr(auth_user, "id", None)
         if not user_id:
             raise ValueError("Invalid access token")
-        row, _ = run(admin.table("users").select("*").eq("id", str(user_id)).maybe_single())
+        row, _ = run(admin.table("users").select("*").eq(USER_ID_COLUMN, str(user_id)).maybe_single())
         if not row:
             email = getattr(auth_user, "email", None) or (auth_user.get("email") if isinstance(auth_user, dict) else None)
             if email:
-                admin.table("users").insert({"id": str(user_id), "email": email, "role": "student"}).execute()
-                row, _ = run(admin.table("users").select("*").eq("id", str(user_id)).maybe_single())
+                admin.table("users").insert({USER_ID_COLUMN: str(user_id), "email": email, "role": "student"}).execute()
+                row, _ = run(admin.table("users").select("*").eq(USER_ID_COLUMN, str(user_id)).maybe_single())
             if not row:
                 return fail(401, "PROFILE_MISSING", "User profile not found") if required else None
         g.user = user_shape(row)
@@ -152,16 +163,20 @@ def safe(route):
 
 
 def event_row(event, count=True):
-    starts_at = event.get("timestamp")
+    event_id = event.get(EVENT_ID_COLUMN) or event.get("id")
+    organizer_id = event.get(USER_FK_COLUMN) or event.get("organizer_id")
+    starts_at = event.get("timestamp") or event.get(CREATED_AT_COLUMN)
     parsed = parse_time(starts_at) or now()
     filled = 0
     if count:
-        registrations, _ = run(admin.table(REGISTRATION_TABLE).select("id").eq("event_id", event["id"]))
+        registrations, _ = run(admin.table(REGISTRATION_TABLE).select("id").eq(EVENT_ID_COLUMN, event_id))
         filled = len(registrations or [])
-    organizer, _ = run(admin.table("users").select("email").eq("id", event.get("organizer_id")).maybe_single())
+    organizer, _ = run(admin.table("users").select("email").eq(USER_ID_COLUMN, organizer_id).maybe_single())
     organizer_name = (organizer or {}).get("email", "").split("@", 1)[0].replace(".", " ").title()
     return {
         **event,
+        "id": event_id,
+        "organizer_id": organizer_id,
         "starts_at": starts_at,
         "ends_at": iso(parsed + timedelta(hours=1)),
         "status": "published",
@@ -177,14 +192,14 @@ def event_row(event, count=True):
 
 
 def all_events():
-    rows, _ = run(admin.table("events").select("*").order("timestamp"))
+    rows, _ = run(admin.table("events").select("*").order(CREATED_AT_COLUMN))
     return rows or []
 
 
 def add_my_status(rows):
     if not getattr(g, "user_id", None) or not rows:
         return rows
-    registrations, _ = run(admin.table(REGISTRATION_TABLE).select("event_id").eq("user_id", g.user_id))
+    registrations, _ = run(admin.table(REGISTRATION_TABLE).select(EVENT_ID_COLUMN).eq(USER_FK_COLUMN, g.user_id))
     ids = {row["event_id"] for row in (registrations or [])}
     return [{**row, "my_registration_status": "confirmed" if row["id"] in ids else "none"} for row in rows]
 
@@ -198,8 +213,10 @@ def headers(response):
 @app.get("/api/v1/health")
 @safe
 def health():
-    run(admin.table("events").select("id").limit(1))
-    return ok({"status": "ok", "supabase": "ok", "schema": "existing-users-events-regristration"})
+    run(admin.table("events").select(EVENT_ID_COLUMN).limit(1))
+    run(admin.table("users").select(USER_ID_COLUMN).limit(1))
+    run(admin.table(REGISTRATION_TABLE).select("id").limit(1))
+    return ok({"status": "ok", "supabase": "ok", "schema": "users-events-registrations"})
 
 
 @app.get("/api/v1/config")
@@ -222,9 +239,9 @@ def categories():
 @safe
 def public_stats():
     current = now()
-    rows = [event for event in all_events() if (parse_time(event.get("timestamp")) or current) >= current and (parse_time(event.get("timestamp")) or current) < current + timedelta(days=7)]
-    clubs, _ = run(admin.table("users").select("id", count="exact", head=True).eq("role", "organizer"))
-    return ok({"events_this_week": len(rows), "active_clubs": clubs or 0})
+    rows = [event for event in all_events() if (parse_time(event.get(CREATED_AT_COLUMN)) or current) >= current and (parse_time(event.get(CREATED_AT_COLUMN)) or current) < current + timedelta(days=7)]
+    clubs, _ = run(admin.table("users").select(USER_ID_COLUMN).in_("role", ["organizer", "organiser"]))
+    return ok({"events_this_week": len(rows), "active_clubs": len(clubs or [])})
 
 
 @app.get("/api/v1/events")
@@ -260,7 +277,7 @@ def events():
 @safe
 def featured():
     current = now()
-    rows = [event_row(raw) for raw in all_events() if (parse_time(raw.get("timestamp")) or current) >= current][:6]
+    rows = [event_row(raw) for raw in all_events() if (parse_time(raw.get(CREATED_AT_COLUMN)) or current) >= current][:6]
     return ok(add_my_status(rows))
 
 
@@ -268,12 +285,12 @@ def featured():
 @optional_auth
 @safe
 def event_detail(event_id):
-    raw, _ = run(admin.table("events").select("*").eq("id", event_id).maybe_single())
+    raw, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, event_id).maybe_single())
     if not raw:
         return fail(404, "NOT_FOUND", "Event not found")
     row = event_row(raw)
     if getattr(g, "user_id", None):
-        found, _ = run(admin.table(REGISTRATION_TABLE).select("id").eq("event_id", event_id).eq("user_id", g.user_id).maybe_single())
+        found, _ = run(admin.table(REGISTRATION_TABLE).select("id").eq(EVENT_ID_COLUMN, event_id).eq(USER_FK_COLUMN, g.user_id).maybe_single())
         row["my_registration_status"] = "confirmed" if found else "none"
     return ok(row)
 
@@ -342,7 +359,7 @@ def signup_profile():
     if not auth_email or auth_email.strip().lower() != email:
         return fail(403, "FORBIDDEN", "Email does not match the Supabase account")
 
-    existing, _ = run(admin.table("users").select("role").eq("id", user_id).maybe_single())
+    existing, _ = run(admin.table("users").select("role").eq(USER_ID_COLUMN, user_id).maybe_single())
     name = str(metadata.get("name") or email.split("@", 1)[0]).strip()
     profile = upsert_user_profile(user_id, email, name, (existing or {}).get("role") or "student")
     if not profile:
@@ -359,8 +376,10 @@ def update_user():
     if "name" in changes and not changes["name"]:
         return fail(400, "VALIDATION_ERROR", "name cannot be empty")
     if changes:
-        admin.table("users").update(changes).eq("id", g.user_id).execute()
-    row, _ = run(admin.table("users").select("*").eq("id", g.user_id).maybe_single())
+        supported = {key: value for key, value in changes.items() if key in {"student_id"}}
+        if supported:
+            admin.table("users").update(supported).eq(USER_ID_COLUMN, g.user_id).execute()
+    row, _ = run(admin.table("users").select("*").eq(USER_ID_COLUMN, g.user_id).maybe_single())
     return ok(user_shape(row))
 
 
@@ -381,14 +400,15 @@ def put_preferences():
 @auth
 @safe
 def register(event_id):
-    event, _ = run(admin.table("events").select("*").eq("id", event_id).maybe_single())
-    if not event or (parse_time(event.get("timestamp")) and parse_time(event["timestamp"]) <= now()):
+    event, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, event_id).maybe_single())
+    event_start = event.get("timestamp") or event.get(CREATED_AT_COLUMN)
+    if not event or (parse_time(event_start) and parse_time(event_start) <= now()):
         return fail(404, "EVENT_UNAVAILABLE", "Event not found or has already started")
-    existing, _ = run(admin.table(REGISTRATION_TABLE).select("*").eq("event_id", event_id).eq("user_id", g.user_id).maybe_single())
+    existing, _ = run(admin.table(REGISTRATION_TABLE).select("*").eq(EVENT_ID_COLUMN, event_id).eq(USER_FK_COLUMN, g.user_id).maybe_single())
     if existing:
         return fail(409, "ALREADY_REGISTERED", "Already registered")
-    admin.table(REGISTRATION_TABLE).insert({"user_id": g.user_id, "event_id": event_id, "createdAt": iso(now())}).execute()
-    row, _ = run(admin.table(REGISTRATION_TABLE).select("*").eq("event_id", event_id).eq("user_id", g.user_id).maybe_single())
+    admin.table(REGISTRATION_TABLE).insert({USER_FK_COLUMN: g.user_id, EVENT_ID_COLUMN: event_id, CREATED_AT_COLUMN: iso(now())}).execute()
+    row, _ = run(admin.table(REGISTRATION_TABLE).select("*").eq(EVENT_ID_COLUMN, event_id).eq(USER_FK_COLUMN, g.user_id).maybe_single())
     return ok(row, 201)
 
 
@@ -396,7 +416,7 @@ def register(event_id):
 @auth
 @safe
 def unregister(event_id):
-    existing, _ = run(admin.table(REGISTRATION_TABLE).select("id").eq("event_id", event_id).eq("user_id", g.user_id).maybe_single())
+    existing, _ = run(admin.table(REGISTRATION_TABLE).select("id").eq(EVENT_ID_COLUMN, event_id).eq(USER_FK_COLUMN, g.user_id).maybe_single())
     if not existing:
         return fail(404, "REGISTRATION_NOT_FOUND", "Registration not found")
     admin.table(REGISTRATION_TABLE).delete().eq("id", existing["id"]).execute()
@@ -406,11 +426,11 @@ def unregister(event_id):
 def registration_rows(user_id=None):
     query = admin.table(REGISTRATION_TABLE).select("*")
     if user_id:
-        query = query.eq("user_id", user_id)
-    rows, _ = run(query.order("createdAt", desc=True))
+        query = query.eq(USER_FK_COLUMN, user_id)
+    rows, _ = run(query.order(CREATED_AT_COLUMN, desc=True))
     output = []
     for registration in rows or []:
-        event, _ = run(admin.table("events").select("*").eq("id", registration["event_id"]).maybe_single())
+        event, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, registration[EVENT_ID_COLUMN]).maybe_single())
         if event:
             output.append({**registration, "events": event_row(event), "status": "confirmed"})
     return output
@@ -427,7 +447,7 @@ def my_registrations():
 @auth
 @safe
 def registration_count():
-    rows, _ = run(admin.table(REGISTRATION_TABLE).select("id").eq("user_id", g.user_id))
+    rows, _ = run(admin.table(REGISTRATION_TABLE).select("id").eq(USER_FK_COLUMN, g.user_id))
     return ok({"count": len(rows or [])})
 
 
@@ -439,14 +459,14 @@ def pass_code(registration):
 @auth
 @safe
 def registration_pass(registration_id):
-    registration, _ = run(admin.table(REGISTRATION_TABLE).select("*").eq("id", registration_id).eq("user_id", g.user_id).maybe_single())
+    registration, _ = run(admin.table(REGISTRATION_TABLE).select("*").eq("id", registration_id).eq(USER_FK_COLUMN, g.user_id).maybe_single())
     if not registration:
         return fail(404, "NOT_FOUND", "Pass not found")
-    event, _ = run(admin.table("events").select("*").eq("id", registration["event_id"]).maybe_single())
+    event, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, registration[EVENT_ID_COLUMN]).maybe_single())
     if not event:
         return fail(404, "NOT_FOUND", "Event not found")
     code = pass_code(registration)
-    image = qrcode.make(json.dumps({"pass_code": code, "registration_id": registration_id, "event_id": event["id"]}))
+    image = qrcode.make(json.dumps({"pass_code": code, "registration_id": registration_id, "event_id": event_row(event, count=False)["id"]}))
     stream = io.BytesIO(); image.save(stream, format="PNG")
     payload = {**registration, "pass_code": code, "status": "confirmed", "events": event_row(event), "qr_data_url": "data:image/png;base64," + base64.b64encode(stream.getvalue()).decode()}
     return ok(payload)
@@ -454,8 +474,8 @@ def registration_pass(registration_id):
 
 def organizer_events():
     rows = all_events()
-    if g.user.get("role") != "admin":
-        rows = [row for row in rows if row.get("organizer_id") == g.user_id]
+    if g.user.get("role") not in {"admin"}:
+        rows = [row for row in rows if (row.get(USER_FK_COLUMN) or row.get("organizer_id")) == g.user_id]
     return [event_row(row) for row in rows]
 
 
@@ -491,8 +511,8 @@ def create_event():
     starts = payload.get("starts_at") or payload.get("timestamp")
     if not title or capacity <= 0 or not parse_time(starts):
         return fail(400, "VALIDATION_ERROR", "title, positive capacity, and starts_at are required")
-    admin.table("events").insert({"organizer_id": g.user_id, "title": title, "capacity": capacity, "timestamp": starts}).execute()
-    row, _ = run(admin.table("events").select("*").eq("organizer_id", g.user_id).eq("title", title).eq("timestamp", starts).maybe_single())
+    admin.table("events").insert({USER_FK_COLUMN: g.user_id, "title": title, "capacity": capacity, CREATED_AT_COLUMN: starts}).execute()
+    row, _ = run(admin.table("events").select("*").eq(USER_FK_COLUMN, g.user_id).eq("title", title).eq(CREATED_AT_COLUMN, starts).maybe_single())
     return ok(event_row(row), 201)
 
 
@@ -500,8 +520,8 @@ def create_event():
 @role("organizer", "admin")
 @safe
 def update_event(event_id):
-    current, _ = run(admin.table("events").select("*").eq("id", event_id).maybe_single())
-    if not current or (g.user.get("role") != "admin" and current.get("organizer_id") != g.user_id):
+    current, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, event_id).maybe_single())
+    if not current or (g.user.get("role") != "admin" and current.get(USER_FK_COLUMN) != g.user_id):
         return fail(404, "NOT_FOUND", "Event not found or not owned")
     incoming = request.get_json(silent=True) or {}
     changes = {}
@@ -510,11 +530,11 @@ def update_event(event_id):
     if "capacity" in incoming:
         changes["capacity"] = int(incoming["capacity"])
     if "starts_at" in incoming and parse_time(incoming["starts_at"]):
-        changes["timestamp"] = incoming["starts_at"]
+        changes[CREATED_AT_COLUMN] = incoming["starts_at"]
     if not changes:
         return ok(event_row(current))
-    admin.table("events").update(changes).eq("id", event_id).execute()
-    row, _ = run(admin.table("events").select("*").eq("id", event_id).maybe_single())
+    admin.table("events").update(changes).eq(EVENT_ID_COLUMN, event_id).execute()
+    row, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, event_id).maybe_single())
     return ok(event_row(row))
 
 
@@ -524,8 +544,8 @@ def update_event(event_id):
 def event_action(event_id, action):
     if action not in {"publish", "cancel"}:
         return fail(404, "NOT_FOUND", "Route not found")
-    row, _ = run(admin.table("events").select("*").eq("id", event_id).maybe_single())
-    if not row or (g.user.get("role") != "admin" and row.get("organizer_id") != g.user_id):
+    row, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, event_id).maybe_single())
+    if not row or (g.user.get("role") != "admin" and row.get(USER_FK_COLUMN) != g.user_id):
         return fail(404, "NOT_FOUND", "Event not found or not owned")
     return ok(event_row(row))
 
@@ -534,13 +554,13 @@ def event_action(event_id, action):
 @role("organizer", "admin")
 @safe
 def attendees(event_id):
-    event, _ = run(admin.table("events").select("*").eq("id", event_id).maybe_single())
-    if not event or (g.user.get("role") != "admin" and event.get("organizer_id") != g.user_id):
+    event, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, event_id).maybe_single())
+    if not event or (g.user.get("role") != "admin" and event.get(USER_FK_COLUMN) != g.user_id):
         return fail(404, "NOT_FOUND", "Event not found or not owned")
-    rows, _ = run(admin.table(REGISTRATION_TABLE).select("*").eq("event_id", event_id).order("createdAt"))
+    rows, _ = run(admin.table(REGISTRATION_TABLE).select("*").eq(EVENT_ID_COLUMN, event_id).order(CREATED_AT_COLUMN))
     output = []
     for registration in rows or []:
-        user, _ = run(admin.table("users").select("*").eq("id", registration["user_id"]).maybe_single())
+        user, _ = run(admin.table("users").select("*").eq(USER_ID_COLUMN, registration[USER_FK_COLUMN]).maybe_single())
         output.append({**registration, "status": "confirmed", "users": user_shape(user)})
     return ok(output)
 
@@ -557,7 +577,7 @@ def export_attendees(event_id):
     writer.writerow(["Name", "Email", "Student ID", "Registered At", "Status"])
     for row in data:
         user = row.get("users") or {}
-        writer.writerow([user.get("name"), user.get("email"), user.get("student_id"), row.get("createdAt"), row.get("status")])
+        writer.writerow([user.get("name"), user.get("email"), user.get("student_id"), row.get(CREATED_AT_COLUMN), row.get("status")])
     return Response(stream.getvalue(), mimetype="text/csv")
 
 
@@ -583,10 +603,10 @@ def calendar_text(events):
 @app.get("/api/v1/events/<event_id>/calendar.ics")
 @safe
 def event_calendar(event_id):
-    row, _ = run(admin.table("events").select("*").eq("id", event_id).maybe_single())
+    row, _ = run(admin.table("events").select("*").eq(EVENT_ID_COLUMN, event_id).maybe_single())
     if not row:
         return fail(404, "NOT_FOUND", "Event not found")
-    return Response(calendar_text([row]), mimetype="text/calendar")
+    return Response(calendar_text([event_row(row, count=False)]), mimetype="text/calendar")
 
 
 @app.get("/api/v1/registrations/me/calendar.ics")
